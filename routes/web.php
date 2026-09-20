@@ -194,9 +194,4 @@ Route::post('/product-submit', function (Request $request) {
 
 use App\Http\Controllers\WeightController;
 
-
-Route::get('/', function () {
-    return redirect()->route('weights.index');
-});
-
 Route::resource('weights', WeightController::class);
