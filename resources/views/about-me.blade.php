@@ -57,8 +57,8 @@
                         <!-- EP02 Hero -->
                         <a href="/gallery" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
                             <div>
-                                <h6 class="mb-0 fw-bold">EP02 Hero</h6>
-                                <small class="text-muted">/gallery</small>
+                                <h6 class="mb-0 fw-bold">Hero Gallery</h6>
+                                <small class="text-muted"></small>
                             </div>
                             <span class="badge bg-info text-dark rounded-pill">คลิกเพื่อดูงาน</span>
                         </a>
@@ -66,8 +66,8 @@
                         <!-- EP03 Active Bootstrap -->
                         <a href="/active/index" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
                             <div>
-                                <h6 class="mb-0 fw-bold">EP03 Active Bootstrap</h6>
-                                <small class="text-muted">/active/index</small>
+                                <h6 class="mb-0 fw-bold">Active Bootstrap</h6>
+                                <small class="text-muted"></small>
                             </div>
                             <span class="badge bg-info text-dark rounded-pill">คลิกเพื่อดูงาน</span>
                         </a>
@@ -75,8 +75,8 @@
                         <!-- EP07 Weight -->
                         <a href="/weights" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
                             <div>
-                                <h6 class="mb-0 fw-bold">EP07 Weight</h6>
-                                <small class="text-muted">/weights (ติด Auth)</small>
+                                <h6 class="mb-0 fw-bold">Weight</h6>
+                                <small class="text-muted"></small>
                             </div>
                             <span class="badge bg-warning text-dark rounded-pill">
                                 <i class="bi bi-lock-fill"></i> ล็อกอินก่อนเข้า
