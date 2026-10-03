@@ -1,10 +1,13 @@
 <?php
 
-// use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WeightController;
+use App\Http\Controllers\AboutMeController; // <-- เพิ่ม Controller สำหรับหน้า About Me
 use App\Models\Product;
+use Illuminate\Http\Request; // <-- เพิ่มคลาส Request สำหรับ product-submit
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage; // <-- เพิ่มคลาส Storage สำหรับ product-submit
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +24,13 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
+// ==========================================
+// ส่วนที่เพิ่มใหม่: Route สำหรับหน้า About Me (EP นี้)
+// ==========================================
+Route::get('/about-me', [AboutMeController::class, 'index'])->name('about-me');
+
+
 Route::get("/homepage", function () {
     return "<h1>This is home page</h1>";
 });
@@ -38,13 +48,12 @@ Route::get("/hello", function () {
 });
 
 Route::get('/greeting', function () {
-
-	$name = 'Tayanon';
-$last_name = 'Hakhun';
-
-return view('greeting', compact('name','last_name') );
+    $name = 'Tayanon';
+    $last_name = 'Hakhun';
+    return view('greeting', compact('name','last_name') );
 });
 
+// EP02: Gallery (อ้างอิงจากลิงก์ใน About Me)
 Route::get("/gallery", function () {
     $ant = "https://cdn3.movieweb.com/i/article/Oi0Q2edcVVhs4p1UivwyyseezFkHsq/1107:50/Ant-Man-3-Talks-Michael-Douglas-Update.jpg";
     $bird = "https://images.indianexpress.com/2021/03/falcon-anthony-mackie-1200.jpg";
@@ -71,17 +80,18 @@ Route::get("/gallery/cat", function () {
 });
 
 Route::get("/teacher" , function (){
-	return view("teacher");
+    return view("teacher");
 });
 
 Route::get("/student" , function (){
-	return view("student");
+    return view("student");
 });
 
 Route::get("/theme" , function (){
-	return view("theme");
+    return view("theme");
 });
 
+// EP03: Active Bootstrap (อ้างอิงจากลิงก์ใน About Me)
 Route::get('/active/index', function () {
     return view('active/index');
 })->name('index');
@@ -105,12 +115,9 @@ Route::get('/active/contact', function () {
     return view('active/contact');
 })->name('contact');
 
-
 Route::get('/test',function(){
     return view('test');
 })->name('test');
-
-
 
 Route::get('/coronavirus',function(){
     $reports = [
@@ -123,30 +130,18 @@ Route::get('/coronavirus',function(){
     return view("coronavirus", compact("reports") );
 })->name('coronavirus');
 
-// Route::get('/category/sport', [CategoryController::class, "sport"]);
-// Route::get('/category/politic', [CategoryController::class, "politic"]);
-// Route::get('/category/entertain', [CategoryController::class, "entertain"]);
-// Route::get('/category/auto', [CategoryController::class, "auto"]);
-
-
-// use App\Models\Product;
-// use Illuminate\Support\Facades\DB;
-
 Route::get('query/sql', function () {
     $products = DB::select("SELECT * FROM products");
-    // $products = DB::select("SELECT * FROM products WHERE price > 100");
     return view('query-test', compact('products'));
 });
 
 Route::get('query/builder', function () {
     $products = DB::table('products')->get();
-    // $products = DB::table('products')->where('price', '>', 100)->get();
     return view('query-test', compact('products'));
 });
 
 Route::get('query/orm', function () {
     $products = Product::get();
-    // $products = Product::where('price', '>', 100)->get();
     return view('query-test', compact('products'));
 });
 
@@ -159,7 +154,6 @@ Route::get('product-index', function () {
     return view('query-test', compact('products'));
 })->name("product.index");
 
-
 Route::get('product-form', function () {    
     return view('product-form');
 })->name("product.form");
@@ -171,27 +165,25 @@ Route::post('/product-submit', function (Request $request) {
         'price' => 'required|numeric|min:0',
         'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
     ] , [
-    'name.required' => 'กรุณากรอกชื่อสินค้า',
-    'description.required' => 'กรุณากรอกรายละเอียดสินค้า',
-    'price.required' => 'กรุณากรอกราคา',
-    'price.numeric' => 'ราคาต้องเป็นตัวเลข',
-    'image.image' => 'ไฟล์ต้องเป็นรูปภาพ',
-]
-);    
+        'name.required' => 'กรุณากรอกชื่อสินค้า',
+        'description.required' => 'กรุณากรอกรายละเอียดสินค้า',
+        'price.required' => 'กรุณากรอกราคา',
+        'price.numeric' => 'ราคาต้องเป็นตัวเลข',
+        'image.image' => 'ไฟล์ต้องเป็นรูปภาพ',
+    ]);    
 
-    // ตรวจสอบว่ามีการอัปโหลดรูปภาพ
     if ($request->hasFile('image')) {
         $imagePath = $request->file('image')->store('uploads', 'public');
-        $url = Storage::url($imagePath);
+        $url = Storage::url($imagePath); // แก้ไขไม่ให้ Error เพราะไม่ได้ use Storage ด้านบน
         $data["image"] =$url;
     }
 
-    // บันทึกข้อมูลในฐานข้อมูล
     Product::create($data);
 
     return redirect()->route('product.index')->with('success', 'เพิ่มสินค้าแล้ว!');
 })->name('product.submit');
 
-use App\Http\Controllers\WeightController;
-
+// EP07: Weights (ถูกสร้างด้วย resource ซึ่งคุณมีอยู่แล้ว)
+// *หมายเหตุ: ถ้าต้องการให้ /weights ติด Auth จะต้องไปเขียน middleware('auth') ที่ WeightController 
+// หรือจะแก้ตรงนี้เป็น Route::resource('weights', WeightController::class)->middleware('auth'); ก็ได้ครับ
 Route::resource('weights', WeightController::class);

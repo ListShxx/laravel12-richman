@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('weights', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
-        });
+            $table->date('recorded_on'); // คอลัมน์ที่เราเพิ่มเข้าไปก่อนหน้านี้
+            $table->float('weight');
+            $table->foreignId('user_id')->nullable();
+            // $table->timestamps(); 
+        }); // <-- จุดที่มักจะลืม คือต้องมี }); ปิดท้ายตรงนี้ครับ
     }
 
     /**
