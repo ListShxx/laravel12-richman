@@ -8,6 +8,31 @@ use Illuminate\Http\Request; // <-- เพิ่มคลาส Request สำ�
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage; // <-- เพิ่มคลาส Storage สำหรับ product-submit
+use App\Http\Controllers\LeaveController;
+use Illuminate\Support\Facades\Auth;
+
+Route::post('/logout', function (Request $request) {
+    Auth::logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/leave');
+})->name('logout');
+
+// เปิดให้ทุกคนเข้าหน้า /leave ได้
+Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
+
+// การยื่นลาและอนุมัติยังคงต้องล็อกอินก่อน
+Route::middleware('auth')->group(function () {
+    Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::patch('/leave/{leaveRequest}', [LeaveController::class, 'updateStatus'])->name('leave.updateStatus');
+    Route::middleware('auth')->group(function () {
+    Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::patch('/leave/{leaveRequest}', [LeaveController::class, 'updateStatus'])->name('leave.updateStatus');
+    Route::delete('/leave/{leaveRequest}', [LeaveController::class, 'destroy'])->name('leave.destroy'); // เพิ่มบรรทัดนี้
+});
+});
 
 Route::get('/', function () {
     return view('welcome');
