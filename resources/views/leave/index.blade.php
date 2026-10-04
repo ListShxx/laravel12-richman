@@ -6,9 +6,9 @@
         <p class="text-gray-700 font-medium">
             ผู้ใช้งาน: <span class="font-bold">{{ auth()->user()->name }}</span> ({{ auth()->user()->role }})
         </p>
-        <p class="text-blue-600 font-semibold">
-            วันลาคงเหลือ: {{ auth()->user()->remaining_leave_days }} วัน
-        </p>
+        <div class="text-blue-600 font-bold">
+    วันลาคงเหลือ: {{ $remainingDays }} วัน
+</div>
     </div>
 
     <!-- ปุ่ม Logout -->
@@ -31,7 +31,9 @@
         
         <div class="mb-4 bg-white p-4 rounded shadow">
             <p>ผู้ใช้งาน: {{ auth()->user()->name }} ({{ auth()->user()->role }})</p>
-            <p class="text-lg font-bold text-blue-600">วันลาคงเหลือ: {{ auth()->user()->remaining_leave_days }} วัน</p>
+            <div class="text-blue-600 font-bold">
+    วันลาคงเหลือ: {{ $remainingDays }} วัน
+</div>
         </div>
 
         @if(session('success')) <div class="bg-green-200 text-green-800 p-3 mb-4 rounded">{{ session('success') }}</div> @endif
@@ -56,7 +58,7 @@
             <h3 class="text-lg font-bold mb-4">ประวัติการลา</h3>
             <table class="w-full border-collapse border bg-white rounded-lg overflow-hidden shadow-sm">
     <thead>
-        <tr class="bg-gray-100 border-b">
+        <tr class="bg-gray-100 border-b text-gray-700">
             <th class="p-3 border text-left">ชื่อ</th>
             <th class="p-3 border text-center">วันที่</th>
             <th class="p-3 border text-center">จำนวนวัน</th>
@@ -67,30 +69,71 @@
     </thead>
     <tbody>
         @foreach ($leaves as $leave)
+            @php
+                $statusUpper = strtoupper($leave->status);
+            @endphp
             <tr class="border-b hover:bg-gray-50">
+                <!-- คอลัมน์ 1: ชื่อ -->
                 <td class="p-3 border">{{ $leave->user->name ?? $leave->name }}</td>
-                <td class="p-3 border text-center">{{ $leave->start_date }} ถึง {{ $leave->end_date }}</td>
-                <td class="p-3 border text-center">{{ $leave->days }}</td>
-                <td class="p-3 border">{{ $leave->reason }}</td>
+
+                <!-- คอลัมน์ 2: วันที่ -->
+                <td class="p-3 border text-center whitespace-nowrap">{{ $leave->start_date }} ถึง {{ $leave->end_date }}</td>
+
+                <!-- คอลัมน์ 3: จำนวนวัน -->
                 <td class="p-3 border text-center">
-                    @if($leave->status === 'APPROVED')
+    {{ $leave->days ?? (\Carbon\Carbon::parse($leave->start_date)->diffInDays(\Carbon\Carbon::parse($leave->end_date)) + 1) }} วัน
+</td>
+
+                <!-- คอลัมน์ 4: เหตุผล -->
+                <td class="p-3 border">{{ $leave->reason }}</td>
+
+                <!-- คอลัมน์ 5: สถานะ -->
+                <td class="p-3 border text-center">
+                    @if($statusUpper === 'APPROVED')
                         <span class="text-emerald-600 font-bold">APPROVED</span>
-                    @elseif($leave->status === 'REJECTED')
+                    @elseif($statusUpper === 'REJECTED')
                         <span class="text-red-600 font-bold">REJECTED</span>
                     @else
                         <span class="text-yellow-600 font-bold">PENDING</span>
                     @endif
                 </td>
-                <td class="p-3 text-center border">
-                    {{-- แสดงปุ่มลบเฉพาะผู้ใช้งานที่เป็น Manager เท่านั้น --}}
+
+                <!-- คอลัมน์ 6: จัดการ -->
+                <td class="p-3 border text-center">
                     @if(auth()->user()->role === 'manager')
-                        <form action="{{ route('leave.destroy', $leave) }}" method="POST" class="inline-block" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการลานี้?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition shadow-sm">
-                                ลบ
-                            </button>
-                        </form>
+                        <div class="flex items-center justify-center space-x-1">
+                            {{-- แสดงปุ่ม อนุมัติ/ไม่อนุมัติ เฉพาะเมื่อสถานะยังคงเป็น PENDING --}}
+                            @if($statusUpper === 'PENDING')
+                                {{-- ปุ่มอนุมัติ --}}
+                                <form action="{{ route('leave.updateStatus', $leave) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="approved">
+                                    <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded transition shadow-sm">
+                                        อนุมัติ
+                                    </button>
+                                </form>
+
+                                {{-- ปุ่มไม่อนุมัติ --}}
+                                <form action="{{ route('leave.updateStatus', $leave) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="px-2.5 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition shadow-sm">
+                                        ไม่อนุมัติ
+                                    </button>
+                                </form>
+                            @endif
+
+                            {{-- ปุ่มลบ (แสดงตลอดสำหรับ Manager) --}}
+                            <form action="{{ route('leave.destroy', $leave) }}" method="POST" class="inline-block" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการลานี้?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition shadow-sm">
+                                    ลบ
+                                </button>
+                            </form>
+                        </div>
                     @else
                         <span class="text-gray-400">-</span>
                     @endif

@@ -12,59 +12,75 @@ class LeaveController extends Controller
     // สำหรับแสดงหน้า UI ลางาน
     public function index()
 {
-    // ถ้ายังไม่ได้เข้าสู่ระบบ ให้แสดงหน้า Portal ต้อนรับของระบบลา
+    // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่ ถ้ายังไม่ล็อกอินให้แสดงหน้า Welcome
     if (!auth()->check()) {
         return view('leave.welcome');
     }
 
-    // ถ้าเข้าสู่ระบบแล้ว ให้แสดงหน้ายื่นใบลาตามปกติ
-    $leaves = LeaveRequest::with('user')->orderBy('created_at', 'desc')->get();
-    return view('leave.index', compact('leaves'));
+    $user = auth()->user();
+
+    // ดึงรายการการลาตามสิทธิ์
+    if ($user->role === 'manager') {
+        $leaves = LeaveRequest::with('user')->latest()->get();
+    } else {
+        $leaves = LeaveRequest::where('user_id', $user->id)->latest()->get();
+    }
+
+    // คำนวณวันลาคงเหลือ
+    $usedDays = LeaveRequest::where('user_id', $user->id)
+        ->whereIn('status', ['approved', 'APPROVED'])
+        ->sum('total_days');
+
+    $totalQuota = 15;
+    $remainingDays = max(0, $totalQuota - $usedDays);
+
+    return view('leave.index', compact('leaves', 'remainingDays'));
 }
 
     // บันทึกการขอลางาน
     public function store(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string'
-        ]);
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date'   => 'required|date|after_or_equal:start_date',
+        'reason'     => 'required|string',
+    ]);
 
-        $start = Carbon::parse($request->start_date);
-        $end = Carbon::parse($request->end_date);
-        $total_days = $start->diffInDays($end) + 1;
-        $user = Auth::user();
+    $start = \Carbon\Carbon::parse($request->start_date);
+    $end   = \Carbon\Carbon::parse($request->end_date);
+    $days  = $start->diffInDays($end) + 1;
 
-        if ($total_days > $user->remaining_leave_days) {
-            return back()->with('error', 'วันลาคงเหลือไม่เพียงพอ');
-        }
+    LeaveRequest::create([
+        'user_id'    => auth()->id(),
+        'start_date' => $request->start_date,
+        'end_date'   => $request->end_date,
+        'total_days' => $days,
+        'days'       => $days,
+        'reason'     => $request->reason,
+        'status'     => 'pending',
+    ]);
 
-        LeaveRequest::create([
-            'user_id' => $user->id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'total_days' => $total_days,
-            'reason' => $request->reason,
-        ]);
-
-        return back()->with('success', 'ส่งคำขอลาสำเร็จ');
-    }
+    return redirect()->route('leave.index')->with('success', 'ส่งคำขอลาสำเร็จ');
+}
 
     // อนุมัติ/ปฏิเสธใบลา
-    public function updateStatus(Request $request, LeaveRequest $leave)
-    {
-        if (Auth::user()->role !== 'manager') abort(403, 'เฉพาะหัวหน้างานเท่านั้น');
-
-        $request->validate(['status' => 'required|in:approved,rejected']);
-        $leave->update(['status' => $request->status]);
-
-        if ($request->status === 'approved') {
-            $leave->user->decrement('remaining_leave_days', $leave->total_days);
-        }
-
-        return back()->with('success', 'อัปเดตสถานะเรียบร้อยแล้ว');
+    public function updateStatus(Request $request, LeaveRequest $leaveRequest)
+{
+    if (auth()->user()->role !== 'manager') {
+        abort(403, 'เฉพาะ Manager เท่านั้นที่สามารถอนุมัติการลาได้');
     }
+
+    $request->validate([
+        'status' => 'required|in:approved,rejected,pending,APPROVED,REJECTED,PENDING',
+    ]);
+
+    // แปลงค่าเป็นตัวพิมพ์เล็กก่อนบันทึกลง SQLite
+    $leaveRequest->update([
+        'status' => strtolower($request->status),
+    ]);
+
+    return redirect()->route('leave.index')->with('success', 'อัปเดตสถานะการลาเรียบร้อยแล้ว');
+}
     public function destroy(LeaveRequest $leaveRequest)
 {
     // บล็อกถ้าไม่ใช่ manager
