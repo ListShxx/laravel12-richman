@@ -29,12 +29,7 @@
     <div class="max-w-4xl mx-auto">
         <h1 class="text-2xl font-bold mb-4">ระบบลางาน</h1>
         
-        <div class="mb-4 bg-white p-4 rounded shadow">
-            <p>ผู้ใช้งาน: {{ auth()->user()->name }} ({{ auth()->user()->role }})</p>
-            <div class="text-blue-600 font-bold">
-    วันลาคงเหลือ: {{ $remainingDays }} วัน
-</div>
-        </div>
+        
 
         @if(session('success')) <div class="bg-green-200 text-green-800 p-3 mb-4 rounded">{{ session('success') }}</div> @endif
         @if(session('error')) <div class="bg-red-200 text-red-800 p-3 mb-4 rounded">{{ session('error') }}</div> @endif
