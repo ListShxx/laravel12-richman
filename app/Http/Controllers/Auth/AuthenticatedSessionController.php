@@ -28,8 +28,13 @@ class AuthenticatedSessionController extends Controller
 
     $request->session()->regenerate();
 
-    // เปลี่ยนจุดหมายหลังล็อกอินเป็น /leave
-    return redirect()->intended('/leave');
+    // 1. ถ้ามีการส่งค่า redirect มากับฟอร์ม ให้ส่งไปหน้านั้นทันที (เช่น /about-me)
+    if ($request->filled('redirect')) {
+        return redirect($request->input('redirect'));
+    }
+
+    // 2. ถ้ามาจากหน้าที่ต้องใช้ Auth (intended) ให้กลับไปหน้านั้น ถ้าไม่มีค่อยไปหน้า /leave
+    return redirect()->intended(route('leave.index'));
 }
 
     /**

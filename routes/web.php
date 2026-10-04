@@ -1,42 +1,52 @@
 <?php
 
+use App\Http\Controllers\AboutMeController;
+use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WeightController;
-use App\Http\Controllers\AboutMeController; // <-- เพิ่ม Controller สำหรับหน้า About Me
 use App\Models\Product;
-use Illuminate\Http\Request; // <-- เพิ่มคลาส Request สำหรับ product-submit
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage; // <-- เพิ่มคลาส Storage สำหรับ product-submit
-use App\Http\Controllers\LeaveController;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
+/*
+|--------------------------------------------------------------------------
+| 1. ระบบลา (Leave Management Portal)
+|--------------------------------------------------------------------------
+*/
+
+// กำหนดให้หน้าแรกสุด (/) วิ่งเข้าหน้าระบบลาโดยตรง
+Route::get('/', function () {
+    return redirect()->route('leave.index');
+});
+
+// หน้าหลักระบบลา (เข้าถึงได้ทุกคน)
+Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
+
+// การยื่นลา, อนุมัติ/ปฏิเสธ, และการลบรายการ (ต้องล็อกอินก่อน)
+Route::middleware('auth')->group(function () {
+    Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::patch('/leave/{leaveRequest}', [LeaveController::class, 'updateStatus'])->name('leave.updateStatus');
+    Route::delete('/leave/{leaveRequest}', [LeaveController::class, 'destroy'])->name('leave.destroy');
+});
+
+// Custom Logout เมื่อออกจากระบบให้พาเด้งกลับมาที่ /leave
 Route::post('/logout', function (Request $request) {
     Auth::logout();
-
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
     return redirect('/leave');
 })->name('logout');
 
-// เปิดให้ทุกคนเข้าหน้า /leave ได้
-Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
 
-// การยื่นลาและอนุมัติยังคงต้องล็อกอินก่อน
-Route::middleware('auth')->group(function () {
-    Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
-    Route::patch('/leave/{leaveRequest}', [LeaveController::class, 'updateStatus'])->name('leave.updateStatus');
-    Route::middleware('auth')->group(function () {
-    Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
-    Route::patch('/leave/{leaveRequest}', [LeaveController::class, 'updateStatus'])->name('leave.updateStatus');
-    Route::delete('/leave/{leaveRequest}', [LeaveController::class, 'destroy'])->name('leave.destroy'); // เพิ่มบรรทัดนี้
-});
-});
-
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+|--------------------------------------------------------------------------
+| 2. ระบบยืนยันตัวตน และจัดการโปรไฟล์ (Auth & Profile)
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -50,35 +60,28 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__ . '/auth.php';
 
-// ==========================================
-// ส่วนที่เพิ่มใหม่: Route สำหรับหน้า About Me (EP นี้)
-// ==========================================
+
+/*
+|--------------------------------------------------------------------------
+| 3. โปรเจกต์ About Me และแบบฝึกหัดอื่นๆ (แยกกลุ่มป้องกัน Route ชนกัน)
+|--------------------------------------------------------------------------
+*/
+
+// หน้า About Me
 Route::get('/about-me', [AboutMeController::class, 'index'])->name('about-me');
 
-
-Route::get("/homepage", function () {
-    return "<h1>This is home page</h1>";
+// Active Bootstrap (เปลี่ยนชื่อเป็น active.index, active.about ป้องกันปุ่ม Login ดึงไปมั่ว)
+Route::prefix('active')->name('active.')->group(function () {
+    Route::get('/index', function () { return view('active/index'); })->name('index');
+    Route::get('/about', function () { return view('active/about'); })->name('about');
+    Route::get('/services', function () { return view('active/services'); })->name('services');
+    Route::get('/portfolio', function () { return view('active/portfolio'); })->name('portfolio');
+    Route::get('/team', function () { return view('active/team'); })->name('team');
+    Route::get('/blog', function () { return view('active/blog'); })->name('blog');
+    Route::get('/contact', function () { return view('active/contact'); })->name('contact');
 });
 
-Route::get("/blog/{id}", function ($id) {
-    return "<h1>This is blog page : {$id} </h1>";
-});
-
-Route::get("/category/{a?}", function ($a = "mobile") {
-    return "<h1>This is category page : {$a} </h1>";
-});
-
-Route::get("/hello", function () {
-    return view("hello");
-});
-
-Route::get('/greeting', function () {
-    $name = 'Tayanon';
-    $last_name = 'Hakhun';
-    return view('greeting', compact('name','last_name') );
-});
-
-// EP02: Gallery (อ้างอิงจากลิงก์ใน About Me)
+// Gallery Pages
 Route::get("/gallery", function () {
     $ant = "https://cdn3.movieweb.com/i/article/Oi0Q2edcVVhs4p1UivwyyseezFkHsq/1107:50/Ant-Man-3-Talks-Michael-Douglas-Update.jpg";
     $bird = "https://images.indianexpress.com/2021/03/falcon-anthony-mackie-1200.jpg";
@@ -104,57 +107,34 @@ Route::get("/gallery/cat", function () {
     return view("test/cat", compact("cat"));
 });
 
-Route::get("/teacher" , function (){
-    return view("teacher");
+// General Pages
+Route::get("/homepage", function () { return "<h1>This is home page</h1>"; });
+Route::get("/blog/{id}", function ($id) { return "<h1>This is blog page : {$id} </h1>"; });
+Route::get("/category/{a?}", function ($a = "mobile") { return "<h1>This is category page : {$a} </h1>"; });
+Route::get("/hello", function () { return view("hello"); });
+Route::get('/greeting', function () {
+    $name = 'Tayanon';
+    $last_name = 'Hakhun';
+    return view('greeting', compact('name','last_name') );
 });
 
-Route::get("/student" , function (){
-    return view("student");
-});
+Route::get("/teacher", function () { return view("teacher"); });
+Route::get("/student", function () { return view("student"); });
+Route::get("/theme", function () { return view("theme"); });
+Route::get('/test', function () { return view('test'); })->name('test');
 
-Route::get("/theme" , function (){
-    return view("theme");
-});
-
-// EP03: Active Bootstrap (อ้างอิงจากลิงก์ใน About Me)
-Route::get('/active/index', function () {
-    return view('active/index');
-})->name('index');
-
-Route::get('/active/about', function () {
-    return view('active/about');
-})->name('about');
-Route::get('/active/services', function () {
-    return view('active/services');
-})->name('services');
-Route::get('/active/portfolio', function () {
-    return view('active/portfolio');
-})->name('portfolio');
-Route::get('/active/team', function () {
-    return view('active/team');
-})->name('team');
-Route::get('/active/blog', function () {
-    return view('active/blog');
-})->name('blog');
-Route::get('/active/contact', function () {
-    return view('active/contact');
-})->name('contact');
-
-Route::get('/test',function(){
-    return view('test');
-})->name('test');
-
-Route::get('/coronavirus',function(){
+Route::get('/coronavirus', function () {
     $reports = [
-        (object) ["country"=>"Thailand" , "date"=>"2020-04-19" , "total"=>"2765", "active"=>"790"  , "death"=>"47", "recovered"=>"1928"],
-        (object) ["country"=>"Thailand" , "date"=>"2020-04-18" , "total"=>"2733", "active"=>"899"  , "death"=>"47", "recovered"=>"1787"],
-        (object) ["country"=>"Thailand" , "date"=>"2020-04-17" , "total"=>"2700", "active"=>"964"  , "death"=>"47", "recovered"=>"1689"],
-        (object) ["country"=>"China" , "date"=>"2020-04-16" , "total"=>"2672", "active"=>"1033" , "death"=>"46", "recovered"=>"1593"],
-        (object) ["country"=>"China" , "date"=>"2020-04-15" , "total"=>"2643", "active"=>"1103" , "death"=>"43", "recovered"=>"1497"],
+        (object) ["country" => "Thailand", "date" => "2020-04-19", "total" => "2765", "active" => "790", "death" => "47", "recovered" => "1928"],
+        (object) ["country" => "Thailand", "date" => "2020-04-18", "total" => "2733", "active" => "899", "death" => "47", "recovered" => "1787"],
+        (object) ["country" => "Thailand", "date" => "2020-04-17", "total" => "2700", "active" => "964", "death" => "47", "recovered" => "1689"],
+        (object) ["country" => "China", "date" => "2020-04-16", "total" => "2672", "active" => "1033", "death" => "46", "recovered" => "1593"],
+        (object) ["country" => "China", "date" => "2020-04-15", "total" => "2643", "active" => "1103", "death" => "43", "recovered" => "1497"],
     ];
-    return view("coronavirus", compact("reports") );
+    return view("coronavirus", compact("reports"));
 })->name('coronavirus');
 
+// Query & Products
 Route::get('query/sql', function () {
     $products = DB::select("SELECT * FROM products");
     return view('query-test', compact('products'));
@@ -170,45 +150,47 @@ Route::get('query/orm', function () {
     return view('query-test', compact('products'));
 });
 
-Route::get('barchart', function () {    
-    return view('barchart');
-})->name('barchart');
+Route::get('barchart', function () { return view('barchart'); })->name('barchart');
 
 Route::get('product-index', function () {
     $products = Product::get();
     return view('query-test', compact('products'));
 })->name("product.index");
 
-Route::get('product-form', function () {    
-    return view('product-form');
-})->name("product.form");
+Route::get('product-form', function () { return view('product-form'); })->name("product.form");
 
-Route::post('/product-submit', function (Request $request) {    
+Route::post('/product-submit', function (Request $request) {
     $data = $request->validate([
         'name' => 'required|string|max:255',
         'description' => 'required|string',
         'price' => 'required|numeric|min:0',
         'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-    ] , [
+    ], [
         'name.required' => 'กรุณากรอกชื่อสินค้า',
         'description.required' => 'กรุณากรอกรายละเอียดสินค้า',
         'price.required' => 'กรุณากรอกราคา',
         'price.numeric' => 'ราคาต้องเป็นตัวเลข',
         'image.image' => 'ไฟล์ต้องเป็นรูปภาพ',
-    ]);    
+    ]);
 
     if ($request->hasFile('image')) {
         $imagePath = $request->file('image')->store('uploads', 'public');
-        $url = Storage::url($imagePath); // แก้ไขไม่ให้ Error เพราะไม่ได้ use Storage ด้านบน
-        $data["image"] =$url;
+        $url = Storage::url($imagePath);
+        $data["image"] = $url;
     }
 
     Product::create($data);
 
     return redirect()->route('product.index')->with('success', 'เพิ่มสินค้าแล้ว!');
 })->name('product.submit');
+Route::post('/logout', function (Request $request) {
+    Auth::logout();
 
-// EP07: Weights (ถูกสร้างด้วย resource ซึ่งคุณมีอยู่แล้ว)
-// *หมายเหตุ: ถ้าต้องการให้ /weights ติด Auth จะต้องไปเขียน middleware('auth') ที่ WeightController 
-// หรือจะแก้ตรงนี้เป็น Route::resource('weights', WeightController::class)->middleware('auth'); ก็ได้ครับ
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    // เปลี่ยนเป็น back() เพื่อให้กลับไปยังหน้าที่กดกดล็อกเอาต์ (About Me หรือ Leave)
+    return redirect()->back();
+})->name('logout');
+// Weights Resource
 Route::resource('weights', WeightController::class);

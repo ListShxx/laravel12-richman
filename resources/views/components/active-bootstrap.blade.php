@@ -26,14 +26,6 @@
 
   <!-- Main CSS File -->
   <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
-
-  <!-- =======================================================
-  * Template Name: Active
-  * Template URL: https://bootstrapmade.com/active-bootstrap-website-template/
-  * Updated: Aug 07 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
 </head>
 
 <body class="index-page">
@@ -41,20 +33,18 @@
   <header id="header" class="header d-flex align-items-center sticky-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
-      <a href="index" class="logo d-flex align-items-center">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-        <!-- <img src="assets/img/logo.png" alt=""> -->
-        <h1 class="sitename">Phongsakon </h1>
+      <a href="{{ route('active.index') }}" class="logo d-flex align-items-center">
+        <h1 class="sitename">Phongsakon</h1>
       </a>
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="{{ route('index') }}" class="{{ request()->routeIs('index') ? 'active' : '' }}">Home</a></li>
-          <li><a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a></li>
-          <li><a href="{{ route('services') }}" class="{{ request()->routeIs('services') ? 'active' : '' }}">Services</a></li>
-          <li><a href="{{ route('portfolio') }}" class="{{ request()->routeIs('portfolio') ? 'active' : '' }}">Portfolio</a></li>
-          <li><a href="{{ route('team') }}" class="{{ request()->routeIs('team') ? 'active' : '' }}">Team</a></li>
-          <li><a href="{{ route('blog') }}" class="{{ request()->routeIs('blog') ? 'active' : '' }}">Blog</a></li>
+          <li><a href="{{ route('active.index') }}" class="{{ request()->routeIs('active.index') ? 'active' : '' }}">Home</a></li>
+          <li><a href="{{ route('active.about') }}" class="{{ request()->routeIs('active.about') ? 'active' : '' }}">About</a></li>
+          <li><a href="{{ route('active.services') }}" class="{{ request()->routeIs('active.services') ? 'active' : '' }}">Services</a></li>
+          <li><a href="{{ route('active.portfolio') }}" class="{{ request()->routeIs('active.portfolio') ? 'active' : '' }}">Portfolio</a></li>
+          <li><a href="{{ route('active.team') }}" class="{{ request()->routeIs('active.team') ? 'active' : '' }}">Team</a></li>
+          <li><a href="{{ route('active.blog') }}" class="{{ request()->routeIs('active.blog') ? 'active' : '' }}">Blog</a></li>
 
           <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
@@ -73,7 +63,7 @@
               <li><a href="#">Dropdown 4</a></li>
             </ul>
           </li>
-          <li><a href="{{ route('contact')}}">Contact</a></li>
+          <li><a href="{{ route('active.contact') }}" class="{{ request()->routeIs('active.contact') ? 'active' : '' }}">Contact</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -134,21 +124,11 @@
           <div class="widget">
             <h3 class="widget-heading">Connect</h3>
             <ul class="list-unstyled social-icons light mb-3">
-              <li>
-                <a href="#"><span class="bi bi-facebook"></span></a>
-              </li>
-              <li>
-                <a href="#"><span class="bi bi-twitter-x"></span></a>
-              </li>
-              <li>
-                <a href="#"><span class="bi bi-linkedin"></span></a>
-              </li>
-              <li>
-                <a href="#"><span class="bi bi-google"></span></a>
-              </li>
-              <li>
-                <a href="#"><span class="bi bi-google-play"></span></a>
-              </li>
+              <li><a href="#"><span class="bi bi-facebook"></span></a></li>
+              <li><a href="#"><span class="bi bi-twitter-x"></span></a></li>
+              <li><a href="#"><span class="bi bi-linkedin"></span></a></li>
+              <li><a href="#"><span class="bi bi-google"></span></a></li>
+              <li><a href="#"><span class="bi bi-google-play"></span></a></li>
             </ul>
           </div>
 
@@ -158,7 +138,6 @@
               <form action="forms/newsletter.php" method="post" class="php-email-form">
                 <div class="mb-2">
                   <input type="text" class="form-control" name="email" placeholder="Enter your email">
-
                   <button type="submit" class="btn btn-link">
                     <span class="bi bi-arrow-right"></span>
                   </button>
@@ -177,10 +156,6 @@
       <div class="copyright d-flex flex-column flex-md-row align-items-center justify-content-md-between">
         <p>© <span>Copyright</span> <strong class="px-1 sitename">Active.</strong> <span>All Rights Reserved</span></p>
         <div class="credits">
-          <!-- All the links in the footer should remain intact. -->
-          <!-- You can delete the links only if you've purchased the pro version. -->
-          <!-- Licensing information: https://bootstrapmade.com/license/ -->
-          <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
           Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> | <a href="https://bootstrapmade.com/tools/">DevTools</a>
         </div>
       </div>

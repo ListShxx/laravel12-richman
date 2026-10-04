@@ -24,26 +24,36 @@
                         <h3 class="fw-bold">นายพงศกร ศรีผา</h3>
                         <p class="text-muted fs-5">รหัสนักศึกษา : 68222420009</p>
 
-                        <!-- EP08 Auth: ปุ่ม Login -->
-                        <!-- EP08 Auth: ปุ่ม Login -->
-<div class="mt-4">
-    @guest
-        <!-- ใช้ d-flex และ justify-content-center เพื่อจัดปุ่มให้อยู่กึ่งกลางและคู่กัน -->
-        <div class="d-flex justify-content-center gap-2">
-            <a href="/login" class="btn btn-primary px-4 rounded-pill shadow-sm">
-                Login
-            </a>
-            <a href="/register" class="btn btn-outline-primary px-4 rounded-pill shadow-sm">
-                Register
-            </a>
-        </div>
-        <p class="text-danger mt-3 small">จุ๊บๆ</p>
-    @else
-        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm">
-            เข้าสู่ระบบแล้วในชื่อ: {{ Auth::user()->name }}
-        </span>
-    @endguest
-</div>
+                        <!-- EP08 Auth: ปุ่ม Login & Logout -->
+                        <div class="mt-4">
+                            @guest
+                                <!-- กรณีที่ยังไม่ได้เข้าสู่ระบบ -->
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ route('login', ['redirect' => '/about-me']) }}" class="btn btn-primary px-4 rounded-pill shadow-sm">
+                                        Login
+                                    </a>
+                                    <a href="/register" class="btn btn-outline-primary px-4 rounded-pill shadow-sm">
+                                        Register
+                                    </a>
+                                </div>
+                                <p class="text-danger mt-3 small">จุ๊บๆ</p>
+                            @else
+                                <!-- กรณีเข้าสู่ระบบแล้ว: แสดงชื่อผู้ใช้คู่กับปุ่ม Logout -->
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm">
+                                        เข้าสู่ระบบแล้วในชื่อ: {{ Auth::user()->name }}
+                                    </span>
+                                    
+                                    <!-- ปุ่ม Logout -->
+                                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-danger px-3 py-1 rounded-pill shadow-sm fs-6">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            @endguest
+                        </div>
                     </div>
                 </div>
 
@@ -79,7 +89,7 @@
                                 <small class="text-muted"></small>
                             </div>
                             <span class="badge bg-warning text-dark rounded-pill">
-                                <i class="bi bi-lock-fill"></i> ล็อกอินก่อนเข้า
+                                ล็อกอินก่อนเข้า
                             </span>
                         </a>
 

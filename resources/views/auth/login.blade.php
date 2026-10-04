@@ -5,6 +5,11 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
+        <!-- เพิ่ม Hidden Field เพื่อรับค่า redirect ปลายทาง -->
+        @if(request('redirect'))
+            <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+        @endif
+
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
