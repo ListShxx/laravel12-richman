@@ -8,4 +8,5 @@ class Weight extends Model
 {
     public $timestamps = false; // เพิ่มบรรทัดนี้เพื่อปิดระบบบันทึกเวลาอัตโนมัติ
     // ...
+    
 }

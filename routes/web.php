@@ -193,4 +193,4 @@ Route::post('/logout', function (Request $request) {
     return redirect()->back();
 })->name('logout');
 // Weights Resource
-Route::resource('weights', WeightController::class);
+Route::resource('weights', WeightController::class)->middleware('auth');
