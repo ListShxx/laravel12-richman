@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Storage;
 
 // กำหนดให้หน้าแรกสุด (/) วิ่งเข้าหน้าระบบลาโดยตรง
 Route::get('/', function () {
-    return redirect()->route('leave.index');
+    return view('welcome');
 });
 
 // หน้าหลักระบบลา (เข้าถึงได้ทุกคน)
